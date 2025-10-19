@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: kotlin_kt2_db
+    environment:
+      POSTGRES_DB: kotlin_kt2_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  app:
+    image: azobioz/kotlin-kt2:latest
+    container_name: kotlin_kt2_app
+    ports:
+      - "8085:8085"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/kotlin_kt2_db
+      DB_USER: postgres
+      DB_PASSWORD: 12345
+      DB_DRIVER: org.postgresql.Driver
+      JWT_SECRET: 123456
+      JWT_ISSUER: some-user
+      JWT_AUDIENCE: user-audience
+      JWT_REALM: ktor-sample-realm
+      JWT_TTL: 3600
+
+volumes:
+  db_data:
